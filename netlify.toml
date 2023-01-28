@@ -1,0 +1,7 @@
+[build]
+    functions = "functions"
+
+[[redirects]]
+    to="/.netlify/functions/api/:splay"
+    from="/*"
+    status=200
