@@ -1,47 +1,59 @@
 const express = require("express");
 const serverless = require("serverless-http");
 const WordExtractor = require("word-extractor");
-// const camelCase = require("camelcase");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const router = express.Router();
 const extractor = new WordExtractor();
-router.get("/", (req, res) => {
-	res.json({ hello: "asd" });
-});
-router.get("/json", (req, res) => {
-	const extracted = extractor.extract("./functions/CV_Qualtop.docx");
-	const keyWords = [
-		"Resumen",
-		"Experiencia Profesional",
-		"Educación",
-		"Cursos y Certificaciones",
-		"Conocimientos",
-	];
-	extracted.then(function (doc) {
-		const r = extract(keyWords, JSON.stringify(doc.getBody()));
-		const document = {
-			body: JSON.stringify(doc.getBody()),
-			header: JSON.stringify(doc.getHeaders()),
-			footer: JSON.stringify(doc.getFooters()),
-			sections: r,
-		};
-		// const resume = document.body.substring(
-		// 	document.body.indexOf("Resumen") + "Resumen".length,
-		// 	document.body.indexOf("Experiencia Profesional")
-		// );
-		// console.log(resume.replaceAll("\\n", "<br/>"));
 
-		res.json(document);
-	});
+router.get("/", (req, res) => {
+	res.json({ hello: "hola mundo!" });
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post("/uploadDocx", upload.single("image"), async (req, res, next) => {
+	try {
+		const keyWords = [
+			"Resumen",
+			"Experiencia Profesional",
+			"Educación",
+			"Cursos y Certificaciones",
+			"Conocimientos",
+		];
+		const file = Uint8Array.prototype.slice.call(req.file.buffer);
+		const extracted = extractor.extract(file);
+		extracted
+			.then(function (doc) {
+				const parts = formatting(
+					keyWords,
+					JSON.stringify(doc.getBody())
+				);
+				const document = {
+					sections: parts,
+					body: JSON.stringify(doc.getBody()),
+					header: JSON.stringify(doc.getHeaders()),
+					footer: JSON.stringify(doc.getFooters()),
+				};
+				// // console.log(resume.replaceAll("\\n", "<br/>"));
+				return res.status(200).json(document);
+			})
+			.catch((error) => {
+				return res.status(500).json({ message: "error", error: error });
+			});
+	} catch (error) {
+		return res.status(500).json({ message: "error", error: error });
+	}
 });
 
 app.use("/", router);
 
-// app.listen(port, () => console.log("running"));
 module.exports.handler = serverless(app);
 
-const extract = (keyWords, doc) => {
+const formatting = (keyWords, doc) => {
 	const response = { keyWords: [] };
 	for (let i = 0; i < keyWords.length; i++) {
 		const prop = toNormalForm(keyWords[i]);
