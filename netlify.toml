@@ -3,5 +3,10 @@
 
 [[redirects]]
     to="/.netlify/functions/api/:splay"
-    from="/*"
+    from="/api/*"
     status=200
+
+[[headers]]
+   for = "/*"
+   [headers.values]
+      Access-Control-Allow-Origin = "*"
