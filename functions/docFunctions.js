@@ -17,7 +17,7 @@ const noAccents = (str) => {
 };
 
 const removeSpecialCharacterAtStart = (text) => {
-	return text.replace(/[^\nA-Za-z0-9À-ÖØ-öø-ÿ]+/, "");
+	return text.replace(/[^\nA-Za-z0-9À-ÖØ-öø-ÿ]*/, "");
 };
 const lineBreakToHTML = (text) => {
 	return text.replaceAll(/(\\n|\\\\n|\\t|\\\\t)/g, "<br/>");

@@ -144,16 +144,42 @@ const toHTML = (type, text) => {
 };
 const formattingContentByType = (type, text) => {
 	switch (type.value) {
-		case "skills":
+		case "skills": {
 			return Create({
 				type: type.value,
 				content: formattingToSkill(text),
 			});
-		case "profile":
+		}
+		case "courses": {
 			return Create({
 				type: type.value,
-				content: formattingToProfile(text),
+				content: formattingToCourse(text),
 			});
+		}
+		case "language": {
+			return Create({
+				type: type.value,
+				content: formattingToLanguage(text),
+			});
+		}
+		case "profile": {
+			if (type.separator) {
+				const textSeparated = separateText(text, type.separator);
+				const selectFirst = loopArray(
+					textSeparated.success ? textSeparated.value : {},
+					itemProfile
+				).find((p) => p);
+				return Create({
+					type: type.value,
+					content: selectFirst,
+				});
+			} else {
+				return Create({
+					type: type.value,
+					content: formattingToProfile(text),
+				});
+			}
+		}
 		case "education": {
 			const textSeparated = separateText(text, type.separator);
 			return Create(
@@ -199,19 +225,48 @@ const formattingToSkill = (text) => {
 	}
 	return response;
 };
+const formattingToCourse = (text) => {
+	const textArray = trimLineBreak(text).replaceAll("\\t", "").split("\\n");
+
+	const response = [];
+	for (let i = 0; i < textArray.length; i++) {
+		const element = textArray[i];
+		if (/[a-zA-Z0-9]/g.test(element)) {
+			response.push(itemCourse(element));
+		}
+	}
+	return response;
+};
+const formattingToLanguage = (text) => {
+	const textArray = trimLineBreak(text).replaceAll("\\t", "").split("\\n");
+	const response = [];
+	for (let i = 0; i < textArray.length; i++) {
+		const element = textArray[i];
+		if (/[a-zA-Z0-9]/g.test(element)) {
+			response.push(itemLanguage(element));
+		}
+	}
+	return response;
+};
 const formattingToProfile = (text) => {
 	const profile = {
 		body: lineBreakToHTML(trimLineBreak(text)),
 	};
 	return profile;
 };
-
+const itemProfile = (text) => {
+	const splited = text.split(/\\n/);
+	return {
+		name: splited[0] || "",
+		body: lineBreakToHTML(splited.slice(1).join("\\n")),
+	};
+};
 const itemEducation = (text) => {
 	const splited = text.split(/\\n/);
 	return {
-		level: splited[0] || "",
-		schoolName: splited[1] || "",
-		date: splited[2] || "",
+		level: splited[2] || "",
+		schoolName: splited[0] || "",
+		date: splited[1] || "",
 	};
 };
 
@@ -229,6 +284,18 @@ const itemSkill = (text) => {
 	const splitSkill = text.split("-");
 	return {
 		skillName: (splitSkill[0] || "").trim(),
+		level: (splitSkill[1] || "").trim(),
+	};
+};
+const itemCourse = (text) => {
+	return {
+		body: (text || "").trim(),
+	};
+};
+const itemLanguage = (text) => {
+	const splitSkill = text.split(":");
+	return {
+		language: (splitSkill[0] || "").trim(),
 		level: (splitSkill[1] || "").trim(),
 	};
 };
